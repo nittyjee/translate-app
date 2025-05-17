@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>LibreTranslate App (via Proxy)</title>
+    <title>LibreTranslate App (AllOrigins Proxy)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: sans-serif; text-align: center; padding: 2rem; }
@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-    <h1>Translate with LibreTranslate (via Proxy)</h1>
+    <h1>Translate with LibreTranslate (AllOrigins Proxy)</h1>
     <textarea id="textInput" placeholder="Type something to translate..."></textarea><br>
     <button onclick="translateText()">Translate to Spanish</button>
 
@@ -24,7 +24,7 @@
             const output = document.getElementById('output');
             output.innerText = 'Translating...';
 
-            const proxyUrl = 'https://corsproxy.io/?';
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
             const targetUrl = 'https://translate.argosopentech.com/translate';
 
             fetch(proxyUrl + encodeURIComponent(targetUrl), {
@@ -41,7 +41,7 @@
             .then(data => {
                 output.innerText = data.translatedText || 'Translation failed';
             })
-            .catch(() => {
+            .catch((e) => {
                 output.innerText = 'Error contacting translation service.';
             });
         }
