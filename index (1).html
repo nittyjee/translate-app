@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LibreTranslate App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 2rem; }
+        textarea { width: 90%; height: 100px; font-size: 16px; }
+        button { font-size: 18px; padding: 10px 20px; margin-top: 10px; }
+        #output { margin-top: 20px; font-size: 18px; color: green; }
+    </style>
+</head>
+<body>
+    <h1>Translate with LibreTranslate</h1>
+    <textarea id="textInput" placeholder="Type something to translate..."></textarea><br>
+    <button onclick="translateText()">Translate to Spanish</button>
+
+    <div id="output"></div>
+
+    <script>
+        function translateText() {
+            const text = document.getElementById('textInput').value;
+            const output = document.getElementById('output');
+            output.innerText = 'Translating...';
+
+            fetch('https://translate.argosopentech.com/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    q: text,
+                    source: 'auto',
+                    target: 'es',
+                    format: 'text'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                output.innerText = data.translatedText || 'Translation failed';
+            })
+            .catch(() => {
+                output.innerText = 'Error contacting translation service.';
+            });
+        }
+    </script>
+</body>
+</html>
