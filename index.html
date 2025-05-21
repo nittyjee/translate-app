@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,40 +13,38 @@
     #recordBtn, #speakBtn { font-size: 24px; }
     textarea { width: 90%; height: 100px; font-size: 16px; margin-top: 10px; }
     #output { margin-top: 20px; font-size: 18px; color: green; white-space: pre-wrap; }
-    #speakBtn { display: none; background: none; border: none; cursor: pointer; }
+    #speakBtn { background: none; border: none; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <h1>Speech → Translate → Speak</h1>
 
-  <!-- 1) Record Speech -->
+  <!-- Record Speech -->
   <button id="recordBtn" title="Record your voice">🎤</button><br>
 
-  <!-- 2) Show transcription -->
+  <!-- Show transcription -->
   <textarea id="textInput" placeholder="Your speech will appear here..."></textarea><br>
 
-  <!-- 3) Trigger translation -->
+  <!-- Trigger translation -->
   <button id="translateBtn">Translate to Spanish</button>
 
-  <!-- 4) Show translation + play button -->
+  <!-- Show translation + play button -->
   <div id="outputContainer">
     <div id="output"></div>
     <button id="speakBtn" title="Play translation">🔊</button>
   </div>
 
   <script>
-    // --- Speech-to-Text Setup ---
+    // Speech-to-Text
     const recordBtn = document.getElementById('recordBtn');
     const textarea  = document.getElementById('textInput');
     let recognition, transcript = '';
-
     if ('webkitSpeechRecognition' in window) {
       recognition = new webkitSpeechRecognition();
       recognition.lang = 'en-US';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
-
       recognition.onresult = e => {
         transcript = e.results[0][0].transcript;
         textarea.value = transcript;
@@ -53,17 +52,11 @@
       recognition.onerror = e => console.error('STT error', e);
     } else {
       recordBtn.disabled = true;
-      recordBtn.title = 'Speech Recognition not supported';
+      recordBtn.title = 'Not supported';
     }
+    recordBtn.onclick = () => recognition && (transcript = '', textarea.value = '', recognition.start());
 
-    recordBtn.onclick = () => {
-      if (!recognition) return;
-      transcript = '';
-      textarea.value = '';
-      recognition.start();
-    };
-
-    // --- Translation + Text-to-Speech Setup ---
+    // Translation + TTS
     const translateBtn = document.getElementById('translateBtn');
     const output       = document.getElementById('output');
     const speakBtn     = document.getElementById('speakBtn');
@@ -72,30 +65,20 @@
     translateBtn.onclick = async () => {
       const text = textarea.value.trim();
       if (!text) return;
-
       output.innerText = 'Translating…';
-      speakBtn.style.display = 'none';
-      translatedText = '';
-
       try {
         const res = await fetch(
           'https://translation.googleapis.com/language/translate/v2?key=AIzaSyBjp2QOD5ph7Z-cBuURD5l0-pFDFsdW9Kw',
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              q: text,
-              source: 'en',
-              target: 'es',
-              format: 'text'
-            })
+            body: JSON.stringify({ q: text, source: 'en', target: 'es', format: 'text' })
           }
         );
         const data = await res.json();
-        if (data.data && data.data.translations.length > 0) {
+        if (data.data && data.data.translations.length) {
           translatedText = data.data.translations[0].translatedText;
           output.innerText = translatedText;
-          speakBtn.style.display = 'inline';
         } else {
           output.innerText = 'Translation failed';
         }
@@ -104,17 +87,16 @@
       }
     };
 
-    // Preload voices
-    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-
     speakBtn.onclick = () => {
       if (!translatedText) return;
       const utt = new SpeechSynthesisUtterance(translatedText);
       utt.lang = 'es-ES';
-      const voices = window.speechSynthesis.getVoices();
+      const voices = speechSynthesis.getVoices();
       utt.voice = voices.find(v => v.lang.startsWith('es')) || voices[0];
-      window.speechSynthesis.speak(utt);
+      speechSynthesis.speak(utt);
     };
+    // Preload voices
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
   </script>
 
 </body>
