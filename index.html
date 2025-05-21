@@ -39,24 +39,23 @@
     // Speech-to-Text
     const recordBtn = document.getElementById('recordBtn');
     const textarea  = document.getElementById('textInput');
-    let recognition, transcript = '';
+    let recognition;
     if ('webkitSpeechRecognition' in window) {
       recognition = new webkitSpeechRecognition();
       recognition.lang = 'en-US';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
       recognition.onresult = e => {
-        transcript = e.results[0][0].transcript;
-        textarea.value = transcript;
+        textarea.value = e.results[0][0].transcript;
       };
       recognition.onerror = e => console.error('STT error', e);
     } else {
       recordBtn.disabled = true;
-      recordBtn.title = 'Not supported';
+      recordBtn.title = 'Speech recognition not supported';
     }
-    recordBtn.onclick = () => recognition && (transcript = '', textarea.value = '', recognition.start());
+    recordBtn.onclick = () => recognition && (textarea.value = '', recognition.start());
 
-    // Translation + TTS
+    // Translation
     const translateBtn = document.getElementById('translateBtn');
     const output       = document.getElementById('output');
     const speakBtn     = document.getElementById('speakBtn');
@@ -76,27 +75,23 @@
           }
         );
         const data = await res.json();
-        if (data.data && data.data.translations.length) {
-          translatedText = data.data.translations[0].translatedText;
-          output.innerText = translatedText;
-        } else {
-          output.innerText = 'Translation failed';
-        }
+        translatedText = (data.data && data.data.translations[0].translatedText) || '';
+        output.innerText = translatedText || 'Translation failed';
       } catch (err) {
         output.innerText = 'Error: ' + err.message;
       }
     };
 
+    // Simplified TTS
     speakBtn.onclick = () => {
       if (!translatedText) return;
       const utt = new SpeechSynthesisUtterance(translatedText);
       utt.lang = 'es-ES';
-      const voices = speechSynthesis.getVoices();
-      utt.voice = voices.find(v => v.lang.startsWith('es')) || voices[0];
-      speechSynthesis.speak(utt);
+      window.speechSynthesis.speak(utt);
     };
+
     // Preload voices
-    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
   </script>
 
 </body>
